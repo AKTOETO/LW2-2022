@@ -129,7 +129,7 @@ int B(
 
 // функция измерения времени выполнения функций
 int measure_time(
-	int* arr,				// исходный массив
+	int*& arr,				// исходный массив
 	int size,				// размер массива
 	int target,				// цель поиска
 	int& num_of_comp,		// количество сравнений
@@ -151,6 +151,9 @@ int measure_time(
 template<typename T>
 T input_and_check(T _min, T _max,
 	const char* welcome_str, const char* err_str);
+
+// вспомогательная функция для SLS BLS
+void support_nothing(int*&, int&);
 
 /****************************************************************
 *                Г Л А В Н А Я   Ф У Н К Ц И Я                  *
@@ -177,8 +180,8 @@ int main()
 	// массив с вспомогательными функциями
 	void (*sup_funcs[])(int*&, int&) =
 	{
-		[](int*&, int&) {},
-		[](int*&, int&) {},
+		support_nothing,
+		support_nothing,
 		support_T,
 		support_B
 	};
@@ -234,7 +237,7 @@ int main()
 ****************************************************************/
 
 // изменение размера динамического массива
-void resize_arr(int*& arr, int& size, int inc = 1)
+void resize_arr(int*& arr, int& size, int inc)
 {
 	int* temp = new int[size + inc];
 
@@ -247,6 +250,8 @@ void resize_arr(int*& arr, int& size, int inc = 1)
 	{
 		temp[size + i] = 0;
 	}
+
+	delete[] arr;
 
 	arr = temp;
 	size += inc;
@@ -269,7 +274,7 @@ void randomize_array(int* arr, int size)
 }
 
 // печать массива в поток
-void print_arr(int* arr, int size, ostream& stream = cout)
+void print_arr(int* arr, int size, ostream& stream)
 {
 	// вывод элементов массива
 	for (int i = 0; i < size; i++)
@@ -324,12 +329,14 @@ int SLS(
 	int& num_of_comp	// количество сравнений
 )
 {
-	// Last element of the array
+	// последний элемент массива
 	int last = arr[size - 1];
 
-	// Element to be searched is
-	// placed at the last index
+	// элемент, который нужно найти
+	// располагаем в последеней ячейке массива
 	arr[size - 1] = target;
+
+	// счетчик элементов массива
 	int i = 0;
 
 	while (arr[i] != target)
@@ -337,13 +344,13 @@ int SLS(
 		num_of_comp++;
 		i++;
 	}
-	// сравнение, которое было при 
-	// target > arr[i] = false
 	num_of_comp++;
 
-	// Put the last element back
+	// Возвращаем последний элемент в массив
 	arr[size - 1] = last;
 
+	// если элемент был найден где-то в массиве
+	// или на его конце, то возвращаем индекс
 	num_of_comp++;
 	if ((i < size - 1) || (arr[size - 1] == target))
 	{
@@ -388,8 +395,6 @@ int T(
 		num_of_comp++;
 		i++;
 	}
-	// сравнение, которое было при 
-	// target > arr[i] = false
 	num_of_comp++;
 
 	num_of_comp++;
@@ -408,8 +413,9 @@ void support_B(
 	int& size			// размер массива
 )
 {
-	// сортировка массива
-	insertionSort(arr, size);
+	// сортировка массива 
+	//insertionSort(arr, size);
+	sort(arr, arr + size);
 
 	// убирание последнего элемента из массива,
 	// если он является фиктивным
@@ -463,7 +469,7 @@ int B(
 
 // функция измерения времени выполнения функций
 int measure_time(
-	int* arr,				// исходный массив
+	int*& arr,				// исходный массив
 	int size,				// размер массива
 	int target,				// цель поиска
 	int& num_of_comp,		// количество сравнений
@@ -534,5 +540,11 @@ T input_and_check(T _min, T _max,
 	}
 	return num;
 }
+
+// вспомогательная функция для SLS BLS
+void support_nothing(int*&, int&)
+{
+
+};
 
 /**************** End Of LW2.cpp File ***************/
