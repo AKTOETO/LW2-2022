@@ -7,7 +7,7 @@
 *	Language     : c/c++												*
 *	Programmers  : Плоцкий Б.А. Раужев Ю. М.							*
 *	Created      :  4/10/22												*
-*	Last revision:  7/10/22												*
+*	Last revision:  8/10/22												*
 *	Comment(s)   : 														*
 *																		*
 *	Для алгоритмов BLS и SLS в качестве входного массива использовать  	*
@@ -41,7 +41,6 @@
 #include <cmath>
 #include <iomanip>
 #include <chrono>
-#include <algorithm>	// для функции sort
 
 using namespace std;
 
@@ -63,23 +62,26 @@ typedef chrono::nanoseconds NS;
 ****************************************************************/
 
 // изменение размера динамического массива
-void resize_arr(int*& arr, int& size, int inc = 1);
+template<typename T>
+void resize_arr(T*& arr, int& size, int inc = 1);
 
 // возвращение случайного значения из 
 // интервала (min, max)
-int rand_int_num(int min, int max);
+template<typename T>
+T rand_num(T min, T max);
 
 // рандомизация значений массива
-void randomize_array(int* arr, int size);
+template<typename T>
+void randomize_array(T* arr, int size);
 
 // печать массива в поток
-void print_arr(int* arr, int size, ostream& stream = cout);
+template<typename T>
+void print_arr(T* arr, int size, ostream& stream = cout);
 
-// сортировка по не убыванию
-void insertionSort(
-	int* arr,			// исходный массив
-	int size			// размер массива
-);
+// ввод и проверка значений
+template<typename T>
+T input_and_check(T _min, T _max,
+	const char* welcome_str, const char* err_str);
 
 // алгоритм Better Linear Search
 int BLS(
@@ -147,13 +149,11 @@ int measure_time(
 		)
 );
 
-// ввод и проверка значений
-template<typename T>
-T input_and_check(T _min, T _max,
-	const char* welcome_str, const char* err_str);
+// взаимодействие с пользователем
+void first_part();
 
-// вспомогательная функция для SLS BLS
-void support_nothing(int*&, int&);
+// программное задание параметров
+void second_part();
 
 /****************************************************************
 *                Г Л А В Н А Я   Ф У Н К Ц И Я                  *
@@ -165,69 +165,7 @@ int main()
 
 	srand(time(NULL));
 
-	// запрашиваем у пользователя размер массива
-	int size = input_and_check(MIN_ARR_SIZE, MAX_ARR_SIZE,
-		"Введите размер массива ", "Интервал");
-
-	int* arr = new int[size];	// массив
-	int num_of_comp = 0;		// количество сравнений	
-	NS elapsed_time;			// время выполнения функции
-	int target = 0;				// элемент поиска
-
-	// рандомизация массива
-	randomize_array(arr, size);
-
-	// массив с вспомогательными функциями
-	void (*sup_funcs[])(int*&, int&) =
-	{
-		support_nothing,
-		support_nothing,
-		support_T,
-		support_B
-	};
-
-	// массив с функциями поиска
-	int (*search_funcs[])(int*, int, int, int&) =
-	{
-		BLS,
-		SLS,
-		T,
-		B
-	};
-
-	// названия алгоритмов
-	const char* algorithms[] =
-	{
-		"BLS",
-		"SLS",
-		"T",
-		"B"
-	};
-
-	// вывод массива
-	print_arr(arr, size);
-
-	// запрос у пользователя элемета для поиска
-	target = input_and_check(MIN_VALUE, MAX_VALUE,
-		"Введите элемент для поиска ", "Интервал ");
-
-	cout << "| Алгоритм | ключ | индекс ключа| количество сравнений | время выполнения(нс) |\n";
-	// вызов всех функций поиска
-	for (int i = 0; i < 4; i++)
-	{
-		// получение индекса элемента в массиве
-		int index = measure_time(arr, size, target, num_of_comp,
-			elapsed_time, search_funcs[i], sup_funcs[i]);
-		// вывод строки таблицы
-		cout << "| " << fixed << setfill(' ') << setw(8) << algorithms[i]
-			<< " | " << fixed << setfill(' ') << setw(4) << target
-			<< " | " << fixed << setfill(' ') << setw(11) << index
-			<< " | " << fixed << setfill(' ') << setw(20) << num_of_comp
-			<< " | " << fixed << setfill(' ') << setw(20) << elapsed_time.count() << " |\n";
-	}
-
-	// удаление массива
-	delete[] arr;
+	first_part();
 
 	return 0;
 }
@@ -237,7 +175,8 @@ int main()
 ****************************************************************/
 
 // изменение размера динамического массива
-void resize_arr(int*& arr, int& size, int inc)
+template<typename T>
+void resize_arr(T*& arr, int& size, int inc)
 {
 	int* temp = new int[size + inc];
 
@@ -259,22 +198,25 @@ void resize_arr(int*& arr, int& size, int inc)
 
 // возвращение случайного значения из 
 // интервала (min, max)
-int rand_int_num(int min, int max)
+template<typename T>
+T rand_num(T min, T max)
 {
 	return rand() % (max - min) + min;
 }
 
 // рандомизация значений массива
-void randomize_array(int* arr, int size)
+template<typename T>
+void randomize_array(T* arr, int size)
 {
 	for (int i = 0; i < size; i++)
 	{
-		arr[i] = rand_int_num(MIN_VALUE, MAX_VALUE);
+		arr[i] = rand_num(MIN_VALUE, MAX_VALUE);
 	}
 }
 
 // печать массива в поток
-void print_arr(int* arr, int size, ostream& stream)
+template<typename T>
+void print_arr(T* arr, int size, ostream& stream)
 {
 	// вывод элементов массива
 	for (int i = 0; i < size; i++)
@@ -284,21 +226,37 @@ void print_arr(int* arr, int size, ostream& stream)
 	cout << '\n';
 }
 
-// сортировка по не убыванию
-void insertionSort(
-	int* arr,			// исходный массив
-	int size			// размер массива
-)
+// ввод и проверка значений
+template<typename T>
+T input_and_check(T _min, T _max,
+	const char* welcome_str, const char* err_str)
 {
-	for (int i = 1; i < size; i++)
-	{
-		int j = i - 1;
-		while (j >= 0 && arr[j] > arr[j + 1])
+	// размер массива
+	T num;
+
+	// вывод сообщения
+	cout << welcome_str
+		<< " (" << _min << ", " << _max << ")\n";
+	cin >> num;
+
+	// если было введено не то
+	if (num > _max || num < _min) {
+		// если была введена не цифра
+		if (cin.fail())
 		{
-			swap(arr[j], arr[j + 1]);
-			j--;
+			cin.clear();
+			cin.ignore(INT_MAX, '\n');
 		}
+
+		// отчистка консоли
+		system("cls");
+		cout << err_str
+			<< " (" << _min << ", " << _max << ")\n";
+
+		// рекурсивное обращение
+		num = input_and_check(_min, _max, welcome_str, err_str);
 	}
+	return num;
 }
 
 // алгоритм Better Linear Search
@@ -366,10 +324,6 @@ void support_T(
 	int& size			// размер массива
 )
 {
-	// сортировка массива 
-	//insertionSort(arr, size);
-	sort(arr, arr + size);
-
 	// добавление фиктивного значения в конец массива
 	// если еще нет фиктивного элемента
 	if (arr[size - 1] != INT_MAX)
@@ -413,10 +367,6 @@ void support_B(
 	int& size			// размер массива
 )
 {
-	// сортировка массива 
-	//insertionSort(arr, size);
-	sort(arr, arr + size);
-
 	// убирание последнего элемента из массива,
 	// если он является фиктивным
 	if (arr[size - 1] == INT_MAX)
@@ -508,43 +458,76 @@ int measure_time(
 	return res;
 }
 
-// ввод и проверка значений
-template<typename T>
-T input_and_check(T _min, T _max,
-	const char* welcome_str, const char* err_str)
+void first_part()
 {
-	// размер массива
-	T num;
+	// запрашиваем у пользователя размер массива
+	int size = input_and_check(MIN_ARR_SIZE, MAX_ARR_SIZE,
+		"Введите размер массива ", "Интервал");
 
-	// вывод сообщения
-	cout << welcome_str
-		<< " (" << _min << ";" << _max << ")\n";
-	cin >> num;
+	int* arr = new int[size];	// массив
+	int num_of_comp = 0;		// количество сравнений	
+	NS elapsed_time;			// время выполнения функции
+	int target = 0;				// элемент поиска
 
-	// если было введено не то
-	if (num > _max || num < _min) {
-		// если была введена не цифра
-		if (cin.fail())
-		{
-			cin.clear();
-			cin.ignore(INT_MAX, '\n');
-		}
+	// рандомизация массива
+	randomize_array(arr, size);
 
-		// отчистка консоли
-		system("cls");
-		cout << err_str
-			<< " (" << _min << ";" << _max << ")\n";
+	// массив с вспомогательными функциями
+	void (*sup_funcs[])(int*&, int&) =
+	{
+		[](int*&, int&) {},
+		[](int*&, int&) {},
+		support_T,
+		support_B
+	};
 
-		// рекурсивное обращение
-		num = input_and_check(_min, _max, welcome_str, err_str);
+	// массив с функциями поиска
+	int (*search_funcs[])(int*, int, int, int&) =
+	{
+		BLS,
+		SLS,
+		T,
+		B
+	};
+
+	// названия алгоритмов
+	const char* algorithms[] =
+	{
+		"BLS",
+		"SLS",
+		"T",
+		"B"
+	};
+
+	// вывод массива
+	print_arr(arr, size);
+
+	// запрос у пользователя элемета для поиска
+	target = input_and_check(MIN_VALUE, MAX_VALUE,
+		"Введите элемент для поиска ", "Интервал ");
+
+	cout << "| Алгоритм | ключ | индекс ключа| количество сравнений | время выполнения(нс) |\n";
+	// вызов всех функций поиска
+	for (int i = 0; i < 4; i++)
+	{
+		// получение индекса элемента в массиве
+		int index = measure_time(arr, size, target, num_of_comp,
+			elapsed_time, search_funcs[i], sup_funcs[i]);
+		// вывод строки таблицы
+		cout << "| " << fixed << setfill(' ') << setw(8) << algorithms[i]
+			<< " | " << fixed << setfill(' ') << setw(4) << target
+			<< " | " << fixed << setfill(' ') << setw(11) << index
+			<< " | " << fixed << setfill(' ') << setw(20) << num_of_comp
+			<< " | " << fixed << setfill(' ') << setw(20) << elapsed_time.count() << " |\n";
 	}
-	return num;
+
+	// удаление массива
+	delete[] arr;
+
 }
 
-// вспомогательная функция для SLS BLS
-void support_nothing(int*&, int&)
+void second_part()
 {
-
-};
+}
 
 /**************** End Of LW2.cpp File ***************/
