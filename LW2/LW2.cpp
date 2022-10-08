@@ -59,8 +59,8 @@ typedef chrono::nanoseconds NS;
 
 // минимальный и максимальный
 // размер массива
-#define MAX_ARR_SIZE 1000
-#define MIN_ARR_SIZE 1
+#define MIN_ARR_SIZE 10
+#define MAX_ARR_SIZE 20
 
 // нужна ли печать массива в консоль
 #define NEED_PRINT true
@@ -112,9 +112,10 @@ int SLS(
 
 // функция, которая сортирует массив и 
 // добавляет фиктивный элемент в конец 
-void support_T(
+int support_T(
 	int*& arr,			// исходный массив
-	int& size			// размер массива
+	int& size,			// размер массива
+	int target_pos		// позиция цели
 );
 
 // алгоритм T
@@ -127,9 +128,10 @@ int T(
 
 // функция, которая сортирует массив и 
 // убирает с конца фиктивный элемент
-void support_B(
+int support_B(
 	int*& arr,			// исходный массив
-	int& size			// размер массива
+	int& size,			// размер массива
+	int target_pos		// позиция цели
 );
 
 // алгоритм бинарного поиска
@@ -144,7 +146,8 @@ int B(
 int measure_time(
 	int*& arr,				// исходный массив
 	int size,				// размер массива
-	int target,				// цель поиска
+	int& target,			// элемент поиска
+	int target_pos,			// позиция поиска
 	int& num_of_comp,		// количество сравнений
 	NS& time,				// время работы функции
 	int (*search_func)(		// функция поиска
@@ -153,21 +156,51 @@ int measure_time(
 		int target,			// цель поиска
 		int& num_of_comp	// количество сравнений
 		),
-	void (*support_func)(	// вспомогательная функция
+	int (*support_func)(	// вспомогательная функция
 							// нужна для T и B алгоритмов
 		int*& arr,			// исходный массив
-		int& size			// размер массива		
+		int& size,			// размер массива	
+		int target_pos		// позиция цели
 		)
 );
 
-// взаимодействие с пользователем
-void first_part();
-
 // программное задание параметров
-void second_part();
+void task();
 
 // вызов всех функций поиска и вывод результатов в таблицу
 void gen_arr_draw_table(int size, int target);
+
+/****************************************************************
+*                      К О Н С Т А Н Т Ы                        *
+****************************************************************/
+
+// массив с вспомогательными функциями
+int (*sup_funcs[])(int*& arr, int&, int target_pos) =
+{
+	[](int*& arr, int&, int target_pos) { return arr[target_pos]; },
+	[](int*& arr, int&, int target_pos) { return arr[target_pos]; },
+	support_T,
+	support_B
+};
+
+// массив с функциями поиска
+int (*search_funcs[])(int*, int, int, int&) =
+{
+	BLS,
+	SLS,
+	T,
+	B
+};
+
+// названия алгоритмов
+const char* algorithms[] =
+{
+	"BLS",
+	"SLS",
+	"T",
+	"B"
+};
+
 
 /****************************************************************
 *                Г Л А В Н А Я   Ф У Н К Ц И Я                  *
@@ -179,7 +212,7 @@ int main()
 
 	srand(time(NULL));
 
-	first_part();
+	task();
 
 	return 0;
 }
@@ -249,8 +282,7 @@ T input_and_check(T _min, T _max,
 	T num;
 
 	// вывод сообщения
-	cout << welcome_str
-		<< " (" << _min << ", " << _max << ")\n";
+	cout << welcome_str << "\n";
 	cin >> num;
 
 	// если было введено не то
@@ -264,8 +296,7 @@ T input_and_check(T _min, T _max,
 
 		// отчистка консоли
 		system("cls");
-		cout << err_str
-			<< " (" << _min << ", " << _max << ")\n";
+		cout << err_str << "\n";
 
 		// рекурсивное обращение
 		num = input_and_check(_min, _max, welcome_str, err_str);
@@ -333,17 +364,21 @@ int SLS(
 
 // функция, которая сортирует массив и 
 // добавляет фиктивный элемент в конец 
-void support_T(
+int support_T(
 	int*& arr,			// исходный массив
-	int& size			// размер массива
+	int& size,			// размер массива
+	int target_pos		// позиция цели
 )
 {
+
+
 	// добавление фиктивного значения в конец массива
 	// если еще нет фиктивного элемента
 	if (arr[size - 1] != INT_MAX)
 	{
 		resize_arr(arr, size);
 	}
+	return arr[target_pos];
 }
 
 // алгоритм T
@@ -376,9 +411,10 @@ int T(
 
 // функция, которая сортирует массив и 
 // убирает с конца фиктивный элемент
-void support_B(
+int support_B(
 	int*& arr,			// исходный массив
-	int& size			// размер массива
+	int& size,			// размер массива
+	int target_pos		// позиция цели
 )
 {
 	// убирание последнего элемента из массива,
@@ -387,6 +423,7 @@ void support_B(
 	{
 		resize_arr(arr, size, -1);
 	}
+	return arr[target_pos];
 }
 
 // алгоритм бинарного поиска
@@ -435,7 +472,8 @@ int B(
 int measure_time(
 	int*& arr,				// исходный массив
 	int size,				// размер массива
-	int target,				// цель поиска
+	int& target,			// элемент поиска
+	int target_pos,			// позиция поиска
 	int& num_of_comp,		// количество сравнений
 	NS& time,				// время работы функции
 	int (*search_func)(		// функция поиска
@@ -444,10 +482,11 @@ int measure_time(
 		int target,			// цель поиска
 		int& num_of_comp	// количество сравнений
 		),
-	void (*support_func)(	// вспомогательная функция
+	int (*support_func)(	// вспомогательная функция
 							// нужна для T и B алгоритмов
 		int*& arr,			// исходный массив
-		int& size			// размер массива		
+		int& size,			// размер массива	
+		int target_pos		// позиция цели
 		)
 )
 {
@@ -455,7 +494,7 @@ int measure_time(
 	num_of_comp = 0;
 
 	// вызов вспомогательной функции
-	support_func(arr, size);
+	target = support_func(arr, size, target_pos);
 
 	// начало отсчета времени
 	auto begin = chrono::steady_clock::now();
@@ -472,59 +511,27 @@ int measure_time(
 	return res;
 }
 
-void first_part()
+void task()
 {
-	// запрашиваем у пользователя размер массива
-	int size = input_and_check(MIN_ARR_SIZE, MAX_ARR_SIZE,
-		"Введите размер массива ", "Интервал");
+	int target_pos = input_and_check(1, 3, "Введите расположение элемента,который надо найти:\n\
+\t1.В начале\n\t2.В середине\n\t3.В конце\n", "Строго целые числа 1,2 или 3\n");
 
-	// запрос у пользователя элемета для поиска
-	int target = input_and_check(MIN_VALUE_TARGET, MAX_VALUE_TARGET,
-		"Введите элемент для поиска ", "Интервал ");
-
-	gen_arr_draw_table(size, target);
+	for (int i = MIN_ARR_SIZE; i <= MAX_ARR_SIZE; i += (MAX_ARR_SIZE - MIN_ARR_SIZE) / 10)
+	{
+		gen_arr_draw_table(i, target_pos - 1);
+	}
 }
 
-void second_part()
-{
 
-}
-
-void gen_arr_draw_table(int size, int target)
+void gen_arr_draw_table(int size, int target_pos)
 {
 	int* arr = new int[size];	// массив
 	int num_of_comp = 0;		// количество сравнений	
 	NS elapsed_time;			// время выполнения функции
+	int target;					// цель поиска
 
 	// рандомизация массива
 	randomize_array(arr, size);
-
-	// массив с вспомогательными функциями
-	void (*sup_funcs[])(int*&, int&) =
-	{
-		[](int*&, int&) {},
-		[](int*&, int&) {},
-		support_T,
-		support_B
-	};
-
-	// массив с функциями поиска
-	int (*search_funcs[])(int*, int, int, int&) =
-	{
-		BLS,
-		SLS,
-		T,
-		B
-	};
-
-	// названия алгоритмов
-	const char* algorithms[] =
-	{
-		"BLS",
-		"SLS",
-		"T",
-		"B"
-	};
 
 	// вывод таблицы
 	cout << OUT_W('_', 83) << "\n";
@@ -534,7 +541,7 @@ void gen_arr_draw_table(int size, int target)
 	for (int i = 0; i < 4; i++)
 	{
 		// получение индекса элемента в массиве
-		int index = measure_time(arr, size, target, num_of_comp,
+		int index = measure_time(arr, size, target, target_pos, num_of_comp,
 			elapsed_time, search_funcs[i], sup_funcs[i]);
 		// вывод строки таблицы
 		cout << "| " << OUT_W(' ', 8) << algorithms[i]
