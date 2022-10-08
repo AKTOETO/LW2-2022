@@ -41,21 +41,22 @@
 #include <cmath>
 #include <iomanip>
 #include <chrono>
+#include <fstream>
 
 using namespace std;
 
 // тип данных NS
 typedef chrono::nanoseconds NS;
 
-// минимальное и максимальное значение
-// для чисел в массиве
-#define MIN_VALUE 0
-#define MAX_VALUE 500
-
 // минимальный и максимальный
 // размер массива
-#define MIN_ARR_SIZE 10000
-#define MAX_ARR_SIZE 200000
+#define MIN_ARR_SIZE 10
+#define MAX_ARR_SIZE 20
+
+// минимальное и максимальное значение
+// для чисел в массиве
+#define MIN_VALUE MIN_ARR_SIZE * 2
+#define MAX_VALUE MAX_ARR_SIZE * 2
 
 // нужна ли печать массива в консоль
 #define NEED_PRINT false
@@ -69,7 +70,7 @@ typedef chrono::nanoseconds NS;
 
 // упорядочная функция по возрастанию
 template<typename T>
-void f1(T* arr, int size, double max = MAX_VALUE, double step = 1);
+void f1(T* arr, int size, int max = MAX_VALUE, int step = 1);
 
 // изменение размера динамического массива
 template<typename T>
@@ -222,13 +223,14 @@ int main()
 	srand(time(NULL));
 
 	// запрашиваем у пользователя располжожение элемента
-	int target_pos = input_and_check(1, 3, "Введите расположение элемента,который надо найти:\n\
+	int choose = input_and_check(1, 3, "Введите расположение элемента,который надо найти:\n\
 \t1.В начале\n\t2.В середине\n\t3.В конце\n", "Строго целые числа 1,2 или 3\n");
 
+	int target_pos = 0;
 	// 10 раз просчитываем работу поиска
 	for (int i = MIN_ARR_SIZE; i <= MAX_ARR_SIZE; i += (MAX_ARR_SIZE - MIN_ARR_SIZE) / 10)
 	{
-		switch (target_pos)
+		switch (choose)
 		{
 		case 1:
 			target_pos = 0;
@@ -250,20 +252,25 @@ int main()
 *             Р Е А Л И З А Ц И Я   Ф У Н К Ц И Й               *
 ****************************************************************/
 
+#include <string>
 // упорядочная функция по возрастанию
 template<typename T>
-void f1(T* arr, int size, double max, double step)
+void f1(T* arr, int size, int max, int step)
 {
+	ofstream of("files/" + to_string(size) + ".txt");
+
 	//k, b - коэффициенты прямой
 	T k = max / (step * size);
-	T b = 0;
-	double x = 0.0; // координата x
+	T b = MIN_VALUE;
+	int x = 0.0; // координата x
 
 	// заполнение массива 
 	for (int i = 0; i < size; i++, x += step)
 	{
 		arr[i] = k * x + b;
+		of << arr[i] << endl;
 	}
+	of.close();
 }
 
 // изменение размера динамического массива
@@ -427,7 +434,6 @@ T support_T(
 	{
 		resize_arr(arr, size);
 	}
-
 	return arr[target_pos];
 }
 
@@ -530,6 +536,8 @@ T B(
 template<typename T>
 T support_default(T*& arr, int&, int target_pos)
 {
+	if(arr[target_pos] > 0)
+		arr[target_pos] *= -1;
 	return arr[target_pos];
 }
 
@@ -570,6 +578,11 @@ int measure_time(
 
 	// конец отсчета времени
 	auto end = chrono::steady_clock::now();
+
+	// если это число было помечено для 
+	// SLS И BLS алгоритмов
+	if (target < 0)
+		target *= -1;
 
 	// вывод в консоль времени работы программы
 	time = chrono::duration_cast<chrono::nanoseconds>(end - begin);
