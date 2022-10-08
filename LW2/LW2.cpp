@@ -52,10 +52,21 @@ typedef chrono::nanoseconds NS;
 #define MIN_VALUE 0
 #define MAX_VALUE 500
 
+// минимальное и максимальное значение
+// для элемента поиска
+#define MIN_VALUE_TARGET 0
+#define MAX_VALUE_TARGET 500
+
 // минимальный и максимальный
 // размер массива
 #define MAX_ARR_SIZE 1000
 #define MIN_ARR_SIZE 1
+
+// нужна ли печать массива в консоль
+#define NEED_PRINT true
+
+// заполнение len элементов элементом symb
+#define OUT_W(symb, len) fixed << setfill(symb) << setw(len)
 
 /****************************************************************
 *              П Р О Т О Т И П Ы   Ф У Н К Ц И Й                *
@@ -154,6 +165,9 @@ void first_part();
 
 // программное задание параметров
 void second_part();
+
+// вызов всех функций поиска и вывод результатов в таблицу
+void gen_arr_draw_table(int size, int target);
 
 /****************************************************************
 *                Г Л А В Н А Я   Ф У Н К Ц И Я                  *
@@ -269,7 +283,7 @@ int BLS(
 {
 	for (int i = 0; i < size; i++)
 	{
-		num_of_comp += 2;
+		num_of_comp++;
 		if (arr[i] == target)
 		{
 			return i;
@@ -464,10 +478,23 @@ void first_part()
 	int size = input_and_check(MIN_ARR_SIZE, MAX_ARR_SIZE,
 		"Введите размер массива ", "Интервал");
 
+	// запрос у пользователя элемета для поиска
+	int target = input_and_check(MIN_VALUE_TARGET, MAX_VALUE_TARGET,
+		"Введите элемент для поиска ", "Интервал ");
+
+	gen_arr_draw_table(size, target);
+}
+
+void second_part()
+{
+
+}
+
+void gen_arr_draw_table(int size, int target)
+{
 	int* arr = new int[size];	// массив
 	int num_of_comp = 0;		// количество сравнений	
 	NS elapsed_time;			// время выполнения функции
-	int target = 0;				// элемент поиска
 
 	// рандомизация массива
 	randomize_array(arr, size);
@@ -499,14 +526,10 @@ void first_part()
 		"B"
 	};
 
-	// вывод массива
-	print_arr(arr, size);
-
-	// запрос у пользователя элемета для поиска
-	target = input_and_check(MIN_VALUE, MAX_VALUE,
-		"Введите элемент для поиска ", "Интервал ");
-
-	cout << "| Алгоритм | ключ | индекс ключа| количество сравнений | время выполнения(нс) |\n";
+	// вывод таблицы
+	cout << OUT_W('_', 83) << "\n";
+	cout << "| Размер массива:   | " << OUT_W(' ', 58) << size << " |\n";
+	cout << "| Алгоритм |  Ключ  | индекс ключа | Количество сравнений | Время выполнения(нс) |\n";
 	// вызов всех функций поиска
 	for (int i = 0; i < 4; i++)
 	{
@@ -514,20 +537,20 @@ void first_part()
 		int index = measure_time(arr, size, target, num_of_comp,
 			elapsed_time, search_funcs[i], sup_funcs[i]);
 		// вывод строки таблицы
-		cout << "| " << fixed << setfill(' ') << setw(8) << algorithms[i]
-			<< " | " << fixed << setfill(' ') << setw(4) << target
-			<< " | " << fixed << setfill(' ') << setw(11) << index
-			<< " | " << fixed << setfill(' ') << setw(20) << num_of_comp
-			<< " | " << fixed << setfill(' ') << setw(20) << elapsed_time.count() << " |\n";
+		cout << "| " << OUT_W(' ', 8) << algorithms[i]
+			<< " | " << OUT_W(' ', 6) << target
+			<< " | " << OUT_W(' ', 12) << index
+			<< " | " << OUT_W(' ', 20) << num_of_comp
+			<< " | " << OUT_W(' ', 20) << elapsed_time.count() << " |\n";
 	}
+	cout << OUT_W('-', 83) << "\n";
+
+	if (NEED_PRINT)
+		print_arr(arr, size);
 
 	// удаление массива
 	delete[] arr;
 
-}
-
-void second_part()
-{
 }
 
 /**************** End Of LW2.cpp File ***************/
