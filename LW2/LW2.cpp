@@ -41,7 +41,7 @@
 #include <cmath>
 #include <iomanip>
 #include <chrono>
-#include <fstream>
+//#include <fstream>
 
 using namespace std;
 
@@ -50,8 +50,8 @@ typedef chrono::nanoseconds NS;
 
 // минимальный и максимальный
 // размер массива
-#define MIN_ARR_SIZE 10
-#define MAX_ARR_SIZE 20
+#define MIN_ARR_SIZE 10000
+#define MAX_ARR_SIZE 200000
 
 // минимальное и максимальное значение
 // для чисел в массиве
@@ -257,7 +257,7 @@ int main()
 template<typename T>
 void f1(T* arr, int size, int max, int step)
 {
-	ofstream of("files/" + to_string(size) + ".txt");
+	//ofstream of("files/" + to_string(size) + ".txt");
 
 	//k, b - коэффициенты прямой
 	T k = max / (step * size);
@@ -268,9 +268,9 @@ void f1(T* arr, int size, int max, int step)
 	for (int i = 0; i < size; i++, x += step)
 	{
 		arr[i] = k * x + b;
-		of << arr[i] << endl;
+		//of << arr[i] << endl;
 	}
-	of.close();
+	//of.close();
 }
 
 // изменение размера динамического массива
