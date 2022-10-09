@@ -252,7 +252,7 @@ int main()
 *             Р Е А Л И З А Ц И Я   Ф У Н К Ц И Й               *
 ****************************************************************/
 
-#include <string>
+//#include <string>
 // упорядочная функция по возрастанию
 template<typename T>
 void f1(T* arr, int size, int max, int step)
