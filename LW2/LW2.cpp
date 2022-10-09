@@ -41,25 +41,27 @@
 #include <cmath>
 #include <iomanip>
 #include <chrono>
-//#include <fstream>
 
 using namespace std;
 
 // тип данных NS
 typedef chrono::nanoseconds NS;
 
+// нужна ли печать массива в консоль
+#define NEED_PRINT false
+
 // минимальный и максимальный
 // размер массива
 #define MIN_ARR_SIZE 10000
 #define MAX_ARR_SIZE 200000
 
+// количество таблиц в консоли
+#define NUMB_OF_TABLES 10
+
 // минимальное и максимальное значение
 // для чисел в массиве
 #define MIN_VALUE MIN_ARR_SIZE * 2
 #define MAX_VALUE MAX_ARR_SIZE * 2
-
-// нужна ли печать массива в консоль
-#define NEED_PRINT false
 
 // заполнение len элементов элементом symb
 #define OUT_W(symb, len) fixed << setfill(symb) << setw(len)
@@ -158,7 +160,6 @@ int measure_time(
 	T*& arr,				// исходный массив
 	int size,				// размер массива
 	T& target,			// элемент поиска
-	int target_pos,			// позиция поиска
 	int& num_of_comp,		// количество сравнений
 	NS& time,				// время работы функции
 	T(*search_func)(		// функция поиска
@@ -166,17 +167,14 @@ int measure_time(
 		int size,			// размер массива
 		T target,			// цель поиска
 		int& num_of_comp	// количество сравнений
-		),
-	T (*support_func)(	// вспомогательная функция
-							// возвращает элемент, который нужно искать
-		T*& arr,			// исходный массив
-		int& size,			// размер массива	
-		int target_pos		// позиция цели
 		)
 );
 
 // вызов всех функций поиска и вывод результатов в таблицу
-void gen_arr_draw_table(int size, int target);
+void gen_arr_draw_table(
+	int size,	//размер массива 
+	int target	// элемент поиска
+);
 
 /****************************************************************
 *                      К О Н С Т А Н Т Ы                        *
@@ -194,7 +192,7 @@ T(*sup_funcs[])(T*& arr, int&, int target_pos) =
 
 // массив с функциями поиска
 template<typename Tt>
-Tt (*search_funcs[])(Tt*, int, Tt, int&) =
+Tt(*search_funcs[])(Tt*, int, Tt, int&) =
 {
 	BLS,
 	SLS,
@@ -222,13 +220,18 @@ int main()
 
 	srand(time(NULL));
 
-	// запрашиваем у пользователя располжожение элемента
+	// запрашиваем у пользователя расположение элемента
 	int choose = input_and_check(1, 3, "Введите расположение элемента,который надо найти:\n\
 \t1.В начале\n\t2.В середине\n\t3.В конце\n", "Строго целые числа 1,2 или 3\n");
 
+	// позиция элемента поиска
 	int target_pos = 0;
+
 	// 10 раз просчитываем работу поиска
-	for (int i = MIN_ARR_SIZE; i <= MAX_ARR_SIZE; i += (MAX_ARR_SIZE - MIN_ARR_SIZE) / 10)
+	for (
+		int i = MIN_ARR_SIZE; i <= MAX_ARR_SIZE;
+		i += (MAX_ARR_SIZE - MIN_ARR_SIZE) / NUMB_OF_TABLES
+		)
 	{
 		switch (choose)
 		{
@@ -257,8 +260,6 @@ int main()
 template<typename T>
 void f1(T* arr, int size, int max, int step)
 {
-	//ofstream of("files/" + to_string(size) + ".txt");
-
 	//k, b - коэффициенты прямой
 	T k = max / (step * size);
 	T b = MIN_VALUE;
@@ -268,31 +269,34 @@ void f1(T* arr, int size, int max, int step)
 	for (int i = 0; i < size; i++, x += step)
 	{
 		arr[i] = k * x + b;
-		//of << arr[i] << endl;
 	}
-	//of.close();
 }
 
 // изменение размера динамического массива
 template<typename T>
 void resize_arr(T*& arr, int& size, int inc)
 {
-	T* temp = new T[size + inc];
 
-	for (int i = 0; i < size; i++)
-	{
-		temp[i] = arr[i];
-	}
-
-	for (int i = 0; i < inc; i++)
-	{
-		temp[size + i] = 0;
-	}
-
-	delete[] arr;
-
-	arr = temp;
+	// увеличение длины массива
 	size += inc;
+
+	// создание нового массива
+	T* new_arr = new T[size];
+
+	if (size - 1 != 0)
+	{
+		// копирование данных в новый массив из старого
+		for (int i = 0; i < size - 1; i++)
+		{
+			new_arr[i] = arr[i];
+		}// end for i
+
+		// удаление старого массива
+		delete[] arr;
+	}
+
+	// присваивание старому массиву адресс памяти нового
+	arr = new_arr;
 }
 
 // возвращение случайного значения из 
@@ -536,8 +540,13 @@ T B(
 template<typename T>
 T support_default(T*& arr, int&, int target_pos)
 {
-	if(arr[target_pos] > 0)
+	// необзодимо для отметки элемента
+	// который надо найти
+	if (arr[target_pos] > 0)
+	{
 		arr[target_pos] *= -1;
+	}
+
 	return arr[target_pos];
 }
 
@@ -547,7 +556,6 @@ int measure_time(
 	T*& arr,				// исходный массив
 	int size,				// размер массива
 	T& target,			// элемент поиска
-	int target_pos,			// позиция поиска
 	int& num_of_comp,		// количество сравнений
 	NS& time,				// время работы функции
 	T(*search_func)(		// функция поиска
@@ -555,20 +563,11 @@ int measure_time(
 		int size,			// размер массива
 		T target,			// цель поиска
 		int& num_of_comp	// количество сравнений
-		),
-	T (*support_func)(	// вспомогательная функция
-							// возвращает элемент, который нужно искать
-		T*& arr,			// исходный массив
-		int& size,			// размер массива	
-		int target_pos		// позиция цели
 		)
 )
 {
 	// обнуление количества сравнений
 	num_of_comp = 0;
-
-	// вызов вспомогательной функции
-	target = support_func(arr, size, target_pos);
 
 	// начало отсчета времени
 	auto begin = chrono::steady_clock::now();
@@ -579,13 +578,16 @@ int measure_time(
 	// конец отсчета времени
 	auto end = chrono::steady_clock::now();
 
-	// если это число было помечено для 
-	// SLS И BLS алгоритмов
+	// если необходимое число было
+	// помечено для SLS И BLS алгоритмов
+	// то убираем пометку
 	if (target < 0)
+	{
 		target *= -1;
+	}
 
 	// вывод в консоль времени работы программы
-	time = chrono::duration_cast<chrono::nanoseconds>(end - begin);
+	time = chrono::duration_cast<NS>(end - begin);
 
 	return res;
 }
@@ -604,27 +606,34 @@ void gen_arr_draw_table(int size, int target_pos)
 	// вывод таблицы
 	cout << OUT_W('_', 83) << "\n";
 	cout << "|_Размер_массива:___|_" << OUT_W('_', 58) << size << "_|\n";
-	cout << "| Алгоритм |  Ключ  | индекс ключа | Количество сравнений | Время выполнения(нс) |\n";
+	cout << "| Алгоритм |  Ключ  | Индекс ключа | Количество сравнений | Время выполнения(нс) |\n";
 
 	// вызов всех функций поиска
 	for (int i = 0; i < 4; i++)
 	{
+		// поиск элемента на позиции target_pos
+		// + подготовка массивов для работы алгоритмов поиска
+		target = sup_funcs<long>[i](arr, size, target_pos);
+
 		// получение индекса элемента в массиве
-		int index = measure_time<long>(arr, size, target, target_pos, num_of_comp,
-			elapsed_time, search_funcs<long>[i], sup_funcs<long>[i]);
+		int index = measure_time<long>(arr, size, target, num_of_comp,
+			elapsed_time, search_funcs<long>[i]);
+
 		// вывод строки таблицы
 		cout << "| " << OUT_W(' ', 8) << algorithms[i]
 			<< " | " << OUT_W(' ', 6) << target
 			<< " | " << OUT_W(' ', 12) << index
 			<< " | " << OUT_W(' ', 20) << num_of_comp
 			<< " | " << OUT_W(' ', 20) << elapsed_time.count() << " |\n";
-		// печать массива
+
+		// печать массива, если это необходимо
 		if (NEED_PRINT)
 		{
 			cout << "|МАССИВ ДЛЯ " << OUT_W(' ', 8) << algorithms[i] << "|";
 			print_arr(arr, size);
 		}
 	}
+	// конец таблицы
 	cout << OUT_W('-', 83) << "\n";
 
 	// удаление массива
