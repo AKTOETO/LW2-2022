@@ -53,7 +53,7 @@ typedef chrono::nanoseconds NS;
 // минимальный и максимальный
 // размер массива
 #define MIN_ARR_SIZE 10000
-#define MAX_ARR_SIZE 20000000
+#define MAX_ARR_SIZE 200000
 
 // количество таблиц в консоли
 #define NUMB_OF_TABLES 10
