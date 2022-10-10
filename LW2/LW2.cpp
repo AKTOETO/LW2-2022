@@ -48,12 +48,12 @@ using namespace std;
 typedef chrono::nanoseconds NS;
 
 // нужна ли печать массива в консоль
-#define NEED_PRINT 0
+#define NEED_PRINT false
 
 // минимальный и максимальный
 // размер массива
 #define MIN_ARR_SIZE 10000
-#define MAX_ARR_SIZE 200000
+#define MAX_ARR_SIZE 20000000
 
 // количество таблиц в консоли
 #define NUMB_OF_TABLES 10
@@ -221,8 +221,8 @@ int main()
 	srand(time(NULL));
 
 	// запрашиваем у пользователя расположение элемента
-	int choose = input_and_check(1, 3, "Введите расположение элемента,который надо найти:\n\
-\t1.В начале\n\t2.В середине\n\t3.В конце\n", "Строго целые числа 1,2 или 3\n");
+	int choose = input_and_check(1, 4, "Введите расположение элемента,который надо найти:\n\
+\t1.В начале\n\t2.В середине\n\t3.В конце\n\t4.Ключ не найден\n", "Строго целые числа 1,2,3,4\n");
 
 	// позиция элемента поиска
 	int target_pos = 0;
@@ -244,6 +244,8 @@ int main()
 		case 3:
 			target_pos = i - 1;
 			break;
+		case 4:
+			target_pos = -1;
 		}
 		gen_arr_draw_table(i, target_pos);
 	}
@@ -368,11 +370,10 @@ T BLS(
 	T target,			// цель поиска
 	int& num_of_comp	// количество сравнений
 )
-
 {
 	for (int i = 0; i < size; i++)
 	{
-		num_of_comp++;
+		num_of_comp+=2;
 		if (arr[i] == target)
 		{
 			return i;
@@ -430,6 +431,12 @@ T support_T(
 	int target_pos		// позиция цели
 )
 {
+	// если элемент не должен быть найден
+	if (target_pos == -1)
+	{
+		return -INT_MAX;
+	}
+
 	// формирование неубывающей последовательности 
 	f1(arr, size);
 
@@ -480,9 +487,15 @@ T support_B(
 	int target_pos		// позиция цели
 )
 {
+	// если элемент не должен быть найден
+	if (target_pos == -1)
+	{
+		return -INT_MAX;
+	}
+
 	// убирание последнего элемента из массива,
 	// если он является фиктивным
-	if (arr[size - 1] == INT_MAX)
+	else if (arr[size - 1] == INT_MAX)
 	{
 		resize_arr(arr, size, -1);
 	}
@@ -541,6 +554,11 @@ T B(
 template<typename T>
 T support_default(T*& arr, int&, int target_pos)
 {
+	// если элемент не должен быть найден
+	if (target_pos == -1)
+	{
+		return -INT_MAX;
+	}
 	// необзодимо для отметки элемента
 	// который надо найти
 	if (arr[target_pos] > 0)
@@ -579,14 +597,6 @@ int measure_time(
 	// конец отсчета времени
 	auto end = chrono::steady_clock::now();
 
-	// если необходимое число было
-	// помечено для SLS И BLS алгоритмов
-	// то убираем пометку
-	if (target < 0)
-	{
-		target *= -1;
-	}
-
 	// вывод в консоль времени работы программы
 	time = chrono::duration_cast<NS>(end - begin);
 
@@ -605,9 +615,9 @@ void gen_arr_draw_table(int size, int target_pos)
 	randomize_array(arr, size);
 
 	// вывод таблицы
-	cout << OUT_W('_', 83) << "\n";
-	cout << "|_Размер_массива:___|_" << OUT_W('_', 58) << size << "_|\n";
-	cout << "| Алгоритм |  Ключ  | Индекс ключа | Количество сравнений | Время выполнения(нс) |\n";
+	cout << OUT_W('_', 88) << "\n";
+	cout << "|_Размер_массива: " << OUT_W('_', 67) << size << "_|\n";
+	cout << "| Алгоритм |    Ключ     | Индекс ключа | Количество сравнений | Время выполнения(нс) |\n";
 
 	// вызов всех функций поиска
 	for (int i = 0; i < 4; i++)
@@ -622,7 +632,7 @@ void gen_arr_draw_table(int size, int target_pos)
 
 		// вывод строки таблицы
 		cout << "| " << OUT_W(' ', 8) << algorithms[i]
-			<< " | " << OUT_W(' ', 6) << target
+			<< " | " << OUT_W(' ', 11) << target
 			<< " | " << OUT_W(' ', 12) << index
 			<< " | " << OUT_W(' ', 20) << num_of_comp
 			<< " | " << OUT_W(' ', 20) << elapsed_time.count() << " |\n";
@@ -635,7 +645,7 @@ void gen_arr_draw_table(int size, int target_pos)
 		}
 	}
 	// конец таблицы
-	cout << OUT_W('-', 83) << "\n";
+	cout << OUT_W('-', 88) << "\n";
 
 	// удаление массива
 	delete[] arr;
