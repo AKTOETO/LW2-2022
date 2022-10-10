@@ -7,7 +7,7 @@
 *	Language     : c/c++												*
 *	Programmers  : Плоцкий Б.А. Раужев Ю. М.							*
 *	Created      :  4/10/22												*
-*	Last revision:  8/10/22												*
+*	Last revision:  10/10/22											*
 *	Comment(s)   : 														*
 *																		*
 *	Для алгоритмов BLS и SLS в качестве входного массива использовать  	*
@@ -48,7 +48,7 @@ using namespace std;
 typedef chrono::nanoseconds NS;
 
 // нужна ли печать массива в консоль
-#define NEED_PRINT false
+#define NEED_PRINT 0
 
 // минимальный и максимальный
 // размер массива
@@ -99,7 +99,7 @@ T input_and_check(T _min, T _max,
 // алгоритм Better Linear Search
 template<typename T>
 T BLS(
-	T* arr,			// исходный массив
+	T* arr,				// исходный массив
 	int size,			// размер массива
 	T target,			// цель поиска
 	int& num_of_comp	// количество сравнений
@@ -108,7 +108,7 @@ T BLS(
 // алгоритм Sentinel Linear Search
 template<typename T>
 T SLS(
-	T* arr,			// исходный массив
+	T* arr,				// исходный массив
 	int size,			// размер массива
 	T target,			// цель поиска
 	int& num_of_comp	// количество сравнений
@@ -159,11 +159,11 @@ template<typename T>
 int measure_time(
 	T*& arr,				// исходный массив
 	int size,				// размер массива
-	T& target,			// элемент поиска
+	T& target,				// элемент поиска
 	int& num_of_comp,		// количество сравнений
 	NS& time,				// время работы функции
 	T(*search_func)(		// функция поиска
-		T* arr,			// исходный массив
+		T* arr,				// исходный массив
 		int size,			// размер массива
 		T target,			// цель поиска
 		int& num_of_comp	// количество сравнений
@@ -363,11 +363,12 @@ T input_and_check(T _min, T _max,
 // алгоритм Better Linear Search
 template<typename T>
 T BLS(
-	T* arr,			// исходный массив
+	T* arr,				// исходный массив
 	int size,			// размер массива
 	T target,			// цель поиска
 	int& num_of_comp	// количество сравнений
 )
+
 {
 	for (int i = 0; i < size; i++)
 	{
@@ -384,7 +385,7 @@ T BLS(
 // алгоритм Sentinel Linear Search
 template<typename T>
 T SLS(
-	T* arr,			// исходный массив
+	T* arr,				// исходный массив
 	int size,			// размер массива
 	T target,			// цель поиска
 	int& num_of_comp	// количество сравнений
@@ -496,7 +497,7 @@ T support_B(
 // алгоритм бинарного поиска
 template<typename T>
 T B(
-	T* arr,			// исходный массив
+	T* arr,				// исходный массив
 	int size,			// размер массива
 	T target,			// цель поиска
 	int& num_of_comp	// количество сравнений
@@ -598,7 +599,7 @@ void gen_arr_draw_table(int size, int target_pos)
 	long* arr = new long[size];	// массив
 	int num_of_comp = 0;		// количество сравнений	
 	NS elapsed_time;			// время выполнения функции
-	long target;					// цель поиска
+	long target;				// цель поиска
 
 	// рандомизация массива
 	randomize_array(arr, size);
